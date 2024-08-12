@@ -46,11 +46,17 @@ $ python server.py
 ## Installation
 
 conda create -n embed-dev python=3.12
+
 conda activate embed-dev
+
 pip install fastapi
+
 pip install uvicorn
+
 pip install openai
+
 pip install boto3 python-dotenv
+
 
 ## .env file fow AWS Bedrock
 ```
