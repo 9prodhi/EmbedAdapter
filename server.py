@@ -1,7 +1,8 @@
 import logging
 import time
 from typing import Optional, Union, Dict, List
-from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi import FastAPI, HTTPException, Header, Depends, Security
+from fastapi.security.api_key import APIKeyHeader, APIKey
 from pydantic import BaseModel, Field
 import os
 import uvicorn
@@ -18,6 +19,9 @@ from botocore.exceptions import ClientError
 load_dotenv()
 
 MODEL_NAME = "amazon.titan-embed-text-v2:0"
+API_KEY = os.environ.get("API_KEY", "99")
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
 app = FastAPI()
 logger = logging.getLogger(__name__)
 
@@ -110,10 +114,16 @@ def get_embeddings(texts: List[str], model: str = MODEL_NAME):
     return embeddings
 
 
+async def get_api_key(api_key_header: str = Security(api_key_header)):
+    if api_key_header == API_KEY:
+        return api_key_header
+    raise HTTPException(status_code=403, detail="Could not validate credentials")
+
+
 @app.post("/v1/embeddings")
 async def create_embedding(
     body: EmbeddingBody,
-    Authorization: Optional[str] = Header(None)
+    api_key: APIKey = Depends(get_api_key)
 ):
     texts = [process_input(item) for item in body.input]
     start = time.time()
