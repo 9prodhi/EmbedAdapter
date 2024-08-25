@@ -2,7 +2,6 @@ import logging
 import time
 from typing import Optional, Union, Dict, List
 from fastapi import FastAPI, Header, Depends, Request
-from pydantic import BaseModel, Field
 import os
 import uvicorn
 from starlette.concurrency import run_in_threadpool
@@ -10,7 +9,7 @@ from utils.BedrockHandler import BedRockClient
 from utils.EmbeddingsHandler import get_embeddings
 from utils.ChatHandler import get_chat_completion
 from utils.others import process_input_embeddings, build_result_chat
-
+from utils.types import ChatCompletionBody, EmbeddingBody
 
 import os
 
@@ -24,26 +23,6 @@ app = FastAPI()
 logger = logging.getLogger(__name__)
 
 MODEL_NAME = "amazon.titan-embed-text-v2:0"
-
-class EmbeddingBody(BaseModel):
-    input: str | List[Union[str, Dict[str, str]]] = Field(description="List of strings or key-value pairs for embedding")
-    # input: Optional[str | list[str]]
-    model: Optional[str] = Field(
-        default=None, title="model name. not in use", max_length=300
-    )
-
-class Message(BaseModel):
-    role: str
-    content: str
-
-class ChatCompletionBody(BaseModel):
-    messages: list[Message]
-    model: str
-    frequency_penalty: Optional[float] = 0
-    presence_penalty: Optional[float] = 0
-    max_tokens: Optional[int] = 500
-    temperature: Optional[float] = 0
-    top_p: Optional[float] = 1
 
 
 bedrock_client = BedRockClient()._get_bedrock_client()
@@ -76,7 +55,7 @@ async def create_embedding(
     body: ChatCompletionBody,
     Authorization: Optional[str] = Header(None)
 ):
-    message = body.messages[0].content
+    message = body.messages
     max_tokens = body.max_tokens
     temperature = body.temperature
     model = body.model

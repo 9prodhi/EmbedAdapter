@@ -1,4 +1,5 @@
 from typing import Optional, Union, Dict, List
+from time import time 
 
 def process_input_embeddings(item: Union[str, Dict[str, str]]) -> str:
     if isinstance(item, str):
@@ -11,7 +12,7 @@ def process_input_embeddings(item: Union[str, Dict[str, str]]) -> str:
     
 
 
-def build_result_chat(response_json):
+def build_result_chat_old(response_json):
     res = {
         "id": response_json['request_id'],
         "object": "chat.completion",
@@ -28,6 +29,23 @@ def build_result_chat(response_json):
                 "finish_reason": "stop"
             }
         ],
+        "usage": {
+            "prompt_tokens": response_json['input_token_count'],
+            "completion_tokens": response_json['output_token_count'],
+            "total_tokens": response_json['total_token_count']
+        }
+    }
+    return res
+
+
+def build_result_chat(response_json):
+    res = {
+        "id": response_json['request_id'],
+        "object": "chat.completion",
+        "created": int(time()),
+        "model": response_json["model"],
+        "system_fingerprint": "fp_ollama",
+        "choices": response_json['response'],
         "usage": {
             "prompt_tokens": response_json['input_token_count'],
             "completion_tokens": response_json['output_token_count'],
