@@ -73,4 +73,5 @@ bedrock/
 .pipelines
 .pipeline
 .env
+venv
 requirements.txt
